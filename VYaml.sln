@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.12.35521.163 d17.12
+# Visual Studio Version 18
+VisualStudioVersion = 18.5.11605.296 insiders
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VYaml", "VYaml\VYaml.csproj", "{0B2198C7-97FC-4C22-81C3-89FCA1075F3C}"
 EndProject
@@ -51,8 +51,7 @@ Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		NetStandard2_0_Compat\NetStandard2_0_Compat.projitems*{03e661fa-f25d-407e-ae90-daf988bcf536}*SharedItemsImports = 13
-		NetStandard2_0_Compat\NetStandard2_0_Compat.projitems*{0b2198c7-97fc-4c22-81c3-89fca1075f3c}*SharedItemsImports = 5
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4ED2A0E1-7AEF-4563-8091-2BCD57D8E776}
 	EndGlobalSection
 EndGlobal

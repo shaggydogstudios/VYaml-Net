@@ -776,7 +776,7 @@ namespace VYaml.Tests
         }
 
         [Test]
-        [Timeout(5000)]
+        [CancelAfter(5000)]
         public void MappingKeyWithColonAtEof()
         {
             CreateTokenizer("  property:", out var tokenizer);

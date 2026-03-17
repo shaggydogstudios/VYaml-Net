@@ -2,7 +2,6 @@
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.DotnetRuntime.Extensions;
 
 namespace VYaml.SourceGenerator;
 
@@ -13,7 +12,6 @@ public class VYamlIncrementalSourceGenerator : IIncrementalGenerator
     {
         var provider = context.SyntaxProvider
             .ForAttributeWithMetadataName(
-                context,
                 "VYaml.Annotations.YamlObjectAttribute",
                 static (node, cancellation) =>
                 {
