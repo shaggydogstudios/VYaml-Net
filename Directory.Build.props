@@ -2,10 +2,14 @@
     <PropertyGroup>
         <!-- NuGet Packaging -->
         <PackageVersion>1.2.0</PackageVersion>
-        <Authors>hadashiA</Authors>
-        <PackageProjectUrl>https://github.com/hadashiA/VYaml</PackageProjectUrl>
+        <Authors>hadashiA;tlaedre</Authors>
+        <PackageProjectUrl>https://github.com/shaggydogstudios/VYaml-Net</PackageProjectUrl>
         <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    </PropertyGroup>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+	</PropertyGroup>
 </Project>
