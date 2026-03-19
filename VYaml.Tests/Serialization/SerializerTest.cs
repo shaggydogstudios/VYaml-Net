@@ -183,8 +183,7 @@ namespace VYaml.Tests.Serialization
         [Test]
         public void Deserialize_Empty()
         {
-            var empty = new ReadOnlyMemory<byte>(Array.Empty<byte>());
-            var result1 = YamlSerializer.Deserialize<dynamic>(empty);
+            var result1 = YamlSerializer.Deserialize<dynamic>(Array.Empty<byte>());
             Assert.That(result1, Is.Null);
         }
     }

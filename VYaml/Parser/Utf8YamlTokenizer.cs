@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.Runtime.CompilerServices;
 using VYaml.Internal;
 
@@ -13,6 +12,88 @@ namespace VYaml.Parser
         public bool Required;
         public int TokenNumber;
         public Marker Start;
+    }
+
+    ref struct SpanReader
+    {
+        ReadOnlySpan<byte> span;
+        int position;
+
+        public SpanReader(ReadOnlySpan<byte> span)
+        {
+            this.span = span;
+            position = 0;
+        }
+
+        public int Position
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => position;
+        }
+
+        public int Remaining
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => span.Length - position;
+        }
+
+        public bool End
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => position >= span.Length;
+        }
+
+        public bool MoreData
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => position < span.Length;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryPeek(out byte value)
+        {
+            if(MoreData)
+            {
+                value = span[position];
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryPeek(int offset, out byte value)
+        {
+            if (position + offset < span.Length)
+            {
+                value = span[position + offset];
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsNext(scoped ReadOnlySpan<byte> next, bool advancePast = false)
+        {
+            if(span.Slice(position).StartsWith(next))
+            {
+                if (advancePast)
+                    Advance(next.Length);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Advance(int count)
+        {
+            position += count;
+        }
     }
 
     public ref struct Utf8YamlTokenizer
@@ -41,7 +122,7 @@ namespace VYaml.Parser
             get => mark;
         }
 
-        SequenceReader<byte> reader;
+        SpanReader reader;
         Marker mark;
         Token currentToken;
 
@@ -59,9 +140,9 @@ namespace VYaml.Parser
         readonly ExpandBuffer<SimpleKeyState> simpleKeyCandidates;
         readonly ExpandBuffer<int> indents;
 
-        public Utf8YamlTokenizer(ReadOnlySequence<byte> sequence)
+        public Utf8YamlTokenizer(ReadOnlySpan<byte> span)
         {
-            reader = new SequenceReader<byte>(sequence);
+            reader = new SpanReader(span);
             mark = new Marker(0, 1, 0);
 
             indent = -1;
@@ -1678,79 +1759,16 @@ namespace VYaml.Parser
 
         readonly bool IsEmptyNext(int offset)
         {
-            if (reader.End || reader.Remaining <= offset)
-                return true;
+            if(reader.TryPeek(offset, out var value))
+                return YamlCodes.IsEmpty(value);
 
-            // If offset doesn't fall inside current segment move to next until we find correct one
-            if (reader.CurrentSpanIndex + offset <= reader.CurrentSpan.Length - 1)
-            {
-                var nextCode = reader.CurrentSpan[reader.CurrentSpanIndex + offset];
-                return YamlCodes.IsEmpty(nextCode);
-            }
-
-            var remainingOffset = offset;
-            var nextPosition = reader.Position;
-            ReadOnlyMemory<byte> currentMemory;
-
-            while (reader.Sequence.TryGet(ref nextPosition, out currentMemory, advance: true))
-            {
-                // Skip empty segment
-                if (currentMemory.Length > 0)
-                {
-                    if (remainingOffset >= currentMemory.Length)
-                    {
-                        // Subtract current non consumed data
-                        remainingOffset -= currentMemory.Length;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-            }
-            return YamlCodes.IsEmpty(currentMemory.Span[remainingOffset]);
+            return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        readonly bool TryPeek(long offset, out byte value)
+        readonly bool TryPeek(int offset, out byte value)
         {
-            // If we've got data and offset is not out of bounds
-            if (reader.End || reader.Remaining <= offset)
-            {
-                value = default;
-                return false;
-            }
-
-            // If offset doesn't fall inside current segment move to next until we find correct one
-            if (reader.CurrentSpanIndex + offset <= reader.CurrentSpan.Length - 1)
-            {
-                value = reader.CurrentSpan[reader.CurrentSpanIndex + (int)offset];
-                return true;
-            }
-
-            var remainingOffset = offset;
-            var nextPosition = reader.Position;
-            ReadOnlyMemory<byte> currentMemory;
-
-            while (reader.Sequence.TryGet(ref nextPosition, out currentMemory, advance: true))
-            {
-                // Skip empty segment
-                if (currentMemory.Length > 0)
-                {
-                    if (remainingOffset >= currentMemory.Length)
-                    {
-                        // Subtract current non consumed data
-                        remainingOffset -= currentMemory.Length;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-            }
-
-            value = currentMemory.Span[(int)remainingOffset];
-            return true;
+            return reader.TryPeek(offset, out value);
         }
     }
 }

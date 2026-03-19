@@ -75,15 +75,19 @@ namespace VYaml.Parser
         [ThreadStatic]
         static ExpandBuffer<ParseState>? stateStackBufferStatic;
 
-        public static YamlParser FromBytes(Memory<byte> bytes)
+        public static YamlParser FromBytes(byte[] bytes)
         {
-            var sequence = new ReadOnlySequence<byte>(bytes);
-            return new YamlParser(sequence);
+            return new YamlParser(bytes);
         }
 
-        public static YamlParser FromSequence(in ReadOnlySequence<byte> sequence)
+        public static YamlParser FromMemory(ReadOnlyMemory<byte> memory)
         {
-            return new YamlParser(sequence);
+            return new YamlParser(memory.Span);
+        }
+
+        public static YamlParser FromSpan(ReadOnlySpan<byte> span)
+        {
+            return new YamlParser(span);
         }
 
         public ParseEventType CurrentEventType { get; private set; }
@@ -113,9 +117,9 @@ namespace VYaml.Parser
         readonly Dictionary<string, int> anchors;
         readonly ExpandBuffer<ParseState> stateStack;
 
-        public YamlParser(ReadOnlySequence<byte> sequence)
+        public YamlParser(ReadOnlySpan<byte> span)
         {
-            tokenizer = new Utf8YamlTokenizer(sequence);
+            tokenizer = new Utf8YamlTokenizer(span);
             currentState = ParseState.StreamStart;
             CurrentEventType = default;
             lastAnchorId = -1;
@@ -477,12 +481,13 @@ namespace VYaml.Parser
                         var anchorId = RegisterAnchor(anchorName);
                         currentAnchor = new Anchor(anchorName, anchorId);
 
+#if true
                         // Unity compatible mode
-                        if (CurrentEventType == ParseEventType.DocumentStart &&
-                            currentTag?.Handle == "!u!")
+                        if (CurrentEventType == ParseEventType.DocumentStart && currentTag?.Handle == "!u!")
                         {
                             UnityStrippedMark = tokenizer.TrySkipUnityStrippedSymbol();
                         }
+#endif
                         tokenizer.Read();
                     }
                     break;

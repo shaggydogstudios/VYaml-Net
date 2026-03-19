@@ -812,8 +812,7 @@ namespace VYaml.Tests
 
         static void CreateTokenizer(string yaml, out Utf8YamlTokenizer x)
         {
-            var sequence = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(yaml));
-            x = new Utf8YamlTokenizer(sequence);
+            x = new Utf8YamlTokenizer(Encoding.UTF8.GetBytes(yaml));
         }
 
         static Scalar Scalar(ref Utf8YamlTokenizer tokenizer)

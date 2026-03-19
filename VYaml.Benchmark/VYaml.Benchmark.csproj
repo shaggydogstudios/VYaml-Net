@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -9,7 +9,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+      <PackageReference Include="BenchmarkDotNet" Version="0.16.0-nightly.20260310.466" />
+      <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="4.0.0-beta.24360.3" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.5-beta1" />
       <PackageReference Include="YamlDotNet" Version="16.3.0" />
     </ItemGroup>

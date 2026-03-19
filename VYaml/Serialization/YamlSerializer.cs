@@ -99,30 +99,24 @@ namespace VYaml.Serialization
             return StringEncoding.Utf8.GetString(utf8Bytes.Span);
         }
 
-        public static T Deserialize<T>(ReadOnlyMemory<byte> memory, YamlSerializerOptions? options = null)
+        public static T Deserialize<T>(byte[] bytes, YamlSerializerOptions? options = null)
         {
-            var parser = YamlParser.FromSequence(new ReadOnlySequence<byte>(memory));
+            var parser = YamlParser.FromBytes(bytes);
             return Deserialize<T>(ref parser, options);
         }
 
-        public static T Deserialize<T>(in ReadOnlySequence<byte> sequence, YamlSerializerOptions? options = null)
+        public static T Deserialize<T>(ReadOnlySpan<byte> span, YamlSerializerOptions? options = null)
         {
-            var parser = YamlParser.FromSequence(sequence);
+            var parser = YamlParser.FromSpan(span);
             return Deserialize<T>(ref parser, options);
         }
 
         public static async ValueTask<T> DeserializeAsync<T>(Stream stream, YamlSerializerOptions? options = null)
         {
-            var byteSequenceBuilder = await StreamHelper.ReadAsSequenceAsync(stream);
-            try
-            {
-                var sequence = byteSequenceBuilder.Build();
-                return Deserialize<T>(in sequence, options);
-            }
-            finally
-            {
-                ReusableByteSequenceBuilderPool.Return(byteSequenceBuilder);
-            }
+            // We don't support chunked sequences, so we need to load the stream up-front.
+            byte[] data = new byte[stream.Length];
+            await stream.ReadExactlyAsync(data);
+            return Deserialize<T>(data, options);
         }
 
         public static T Deserialize<T>(ref YamlParser parser, YamlSerializerOptions? options = null)
@@ -140,27 +134,15 @@ namespace VYaml.Serialization
 
         public static async ValueTask<IEnumerable<T>> DeserializeMultipleDocumentsAsync<T>(Stream stream, YamlSerializerOptions? options = null)
         {
-            var byteSequenceBuilder = await StreamHelper.ReadAsSequenceAsync(stream);
-            try
-            {
-                var sequence = byteSequenceBuilder.Build();
-                return DeserializeMultipleDocuments<T>(in sequence, options);
-            }
-            finally
-            {
-                ReusableByteSequenceBuilderPool.Return(byteSequenceBuilder);
-            }
+            // We don't support chunked sequences, so we need to load the stream up-front.
+            byte[] data = new byte[stream.Length];
+            await stream.ReadExactlyAsync(data);
+            return DeserializeMultipleDocuments<T>(data, options);
         }
 
-        public static IEnumerable<T> DeserializeMultipleDocuments<T>(ReadOnlyMemory<byte> memory, YamlSerializerOptions? options = null)
+        public static IEnumerable<T> DeserializeMultipleDocuments<T>(ReadOnlySpan<byte> span, YamlSerializerOptions? options = null)
         {
-            var parser = YamlParser.FromSequence(new ReadOnlySequence<byte>(memory));
-            return DeserializeMultipleDocuments<T>(ref parser, options);
-        }
-
-        public static IEnumerable<T> DeserializeMultipleDocuments<T>(in ReadOnlySequence<byte> sequence, YamlSerializerOptions? options = null)
-        {
-            var parser = YamlParser.FromSequence(sequence);
+            var parser = YamlParser.FromSpan(span);
             return DeserializeMultipleDocuments<T>(ref parser, options);
         }
 
